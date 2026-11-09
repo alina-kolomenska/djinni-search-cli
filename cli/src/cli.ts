@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 // Self-contained CLI for searching jobs on Djinni (djinni.co), the Ukrainian IT
 // job board. No external CLI framework, so it runs anywhere `bun` is available
-// with zero install beyond the repo clone.
+// with no install step.
 //
 // Djinni's robots.txt allows the /jobs/ pages this reads. Keep volume low anyway:
 // a few requests per search session, never a crawl.
@@ -113,6 +113,12 @@ async function main(): Promise<number> {
         "UNKNOWN_FLAG",
       )
     }
+    // Same for stray words: `-q React Native` would otherwise search "React".
+    const stray = (flags._ as string[])[cmd === "detail" ? 2 : 1]
+    if (stray !== undefined) {
+      const hint = cmd === "detail" ? "detail takes one <id|url>" : `quote multi-word values, e.g. -q "React Native"`
+      return fail(`unexpected argument "${stray}" - ${hint}`)
+    }
   }
 
   if (cmd === "search") {
@@ -137,7 +143,7 @@ async function main(): Promise<number> {
         const close = suggestCategories(rawCategory)
         return fail(
           `unknown --category "${rawCategory}" - Djinni ignores category names it does not know and would return every posting on the board. ` +
-            (close.length ? `Did you mean: ${close.join(", ")}?` : "See SKILL.md for the category list."),
+            (close.length ? `Did you mean: ${close.join(", ")}?` : "See CATEGORIES in cli/src/helpers.ts for the list."),
         )
       }
       category = canonical

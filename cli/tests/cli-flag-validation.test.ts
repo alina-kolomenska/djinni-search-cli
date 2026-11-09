@@ -50,6 +50,12 @@ describe("Djinni CLI flag validation", () => {
 
   test("a bad --format is rejected", () => expectBadArg(["search", "--format", "csv"], "BAD_ARG", /format/));
 
+  test("an unquoted multi-word value is rejected, not truncated", () =>
+    expectBadArg(["search", "-q", "React", "Native"], "BAD_ARG", /"Native"/));
+
+  test("a stray argument after the detail id is rejected", () =>
+    expectBadArg(["detail", "123456", "extra"], "BAD_ARG", /"extra"/));
+
   test("detail without an id is NO_ID", () => expectBadArg(["detail"], "NO_ID"));
 
   test("detail with an off-host URL is BAD_ID", () => expectBadArg(["detail", "https://jobs.lever.co/acme/855979"], "BAD_ID"));

@@ -29,6 +29,7 @@ dependencies**: it runs with just `bun`.
 Djinni's `robots.txt` allows the `/jobs/` pages this skill reads, and its terms restrict
 harvesting *candidates'* personal data, which this skill never touches. Still, keep volume
 low: a few searches per session and `detail` only for postings worth reading, never a crawl.
+This is for personal job searching only: don't republish or resell what it returns.
 
 ## When to use this skill
 
@@ -46,6 +47,7 @@ bun run .agents/skills/djinni-search/cli/src/cli.ts search [flags]
 
 Key flags:
 - `--query <text>` / `-q <text>` — keywords. Djinni's basic search matches titles and tags.
+  Quote multi-word values (`-q "React Native"`): a stray unquoted word is an error, not ignored.
 - `--search-type <type>` — `basic` (default), `full-text` (whole description, broader and noisier), or `title`. Needs `--query`.
 - `--category <name>` / `-c <name>` — a Djinni category such as `"React.js"`, `"JavaScript"`, `"Fullstack"`, `"Node.js"`, `"Python"`, `"QA Automation"`. Matched case-insensitively; an unknown name exits 1 with suggestions, because Djinni would silently ignore it and return the whole board.
 - `--employment <mode>` — `remote`, `parttime`, or `office`.

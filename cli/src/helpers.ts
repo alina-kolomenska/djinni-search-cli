@@ -203,7 +203,9 @@ export function extractDivContent(html: string, className: string): string | nul
 }
 
 // The text-sanitising helpers below (numericEntity through stripTags) are
-// adapted from ai-job-search's linkedin-search CLI (MIT, see LICENSE).
+// adapted from the linkedin-search portal CLI (MIT), originally in
+// ai-job-search-dev/ai-job-search and now in ai-job-search-dev/community-portals
+// at portals/global/linkedin-search; synced with its hidden-text fixes.
 
 /**
  * Convert a Unicode code point to a string. Uses `fromCodePoint` (not
@@ -250,7 +252,14 @@ export function stripInvisible<T>(value: T): T {
   return value
 }
 
-const VOID_TAGS = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr"])
+// Quoted attribute values may hold `>` or a close-tag string; neither ends the tag.
+// As in a browser, only a quote right after `=` opens a value (`href=x'y` holds a
+// plain apostrophe), and a value left open runs to the end of the input, so a
+// hidden tag with one still counts as a (never-closed) hidden element.
+const ATTRS = String.raw`(?:=\s*"[^"]*(?:"|$)|=\s*'[^']*(?:'|$)|[^>])*`
+const TAG_END = String.raw`(?:>|$)`
+
+const VOID_TAGS = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"])
 
 /** Whether an opening tag's attributes keep it from rendering: `hidden`, or an inline style that hides it. */
 function isHiddenTag(attrs: string): boolean {
@@ -278,7 +287,7 @@ export function visibleHtml(html: string): string {
     .replace(/<(script|style|template)\b[^>]*>[\s\S]*?(?:<\/\1\s*>|$)/gi, "")
   // One pass, collecting what is kept: slicing the string per hidden element
   // would make a page full of them quadratic.
-  const open = /<([a-zA-Z][a-zA-Z0-9-]*)(\s[^>]*)?>/g
+  const open = new RegExp(`<([a-zA-Z][a-zA-Z0-9-]*)(\\s${ATTRS})?${TAG_END}`, "g")
   const kept: string[] = []
   let from = 0
   let m: RegExpExecArray | null
@@ -286,18 +295,20 @@ export function visibleHtml(html: string): string {
     if (!m[2] || !isHiddenTag(m[2])) continue
     const tag = m[1].toLowerCase()
     let end = open.lastIndex
-    if (!VOID_TAGS.has(tag) && !m[0].endsWith("/>")) {
+    if (!VOID_TAGS.has(tag)) {
       // Skip to the matching close tag, counting nested same-name elements. An
       // unclosed hidden element runs to the end: failing closed drops visible
       // text, failing open would leak the hidden text.
-      const same = new RegExp(`<(/?)${tag}\\b[^>]*>`, "gi")
+      // Every tag is matched whole, so a close tag inside a quoted attribute is skipped.
+      const same = new RegExp(`<(/?)([a-zA-Z][a-zA-Z0-9-]*)${ATTRS}>`, "g")
       same.lastIndex = end
       end = src.length
       let depth = 1
       let s: RegExpExecArray | null
       while ((s = same.exec(src)) !== null) {
+        if (s[2].toLowerCase() !== tag) continue
         if (s[1]) depth--
-        else if (!s[0].endsWith("/>")) depth++
+        else depth++
         if (depth === 0) {
           end = same.lastIndex
           break
@@ -313,7 +324,7 @@ export function visibleHtml(html: string): string {
 }
 
 function stripTags(html: string): string {
-  return visibleHtml(html).replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim()
+  return visibleHtml(html).replace(new RegExp(`<${ATTRS}${TAG_END}`, "g"), " ").replace(/\s+/g, " ").trim()
 }
 
 function clean(html: string): string {
