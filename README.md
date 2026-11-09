@@ -2,6 +2,8 @@
 
 A command-line tool and Claude Code skill for searching IT jobs on [Djinni](https://djinni.co/jobs/), the Ukrainian tech job board, and reading full postings. The repo is laid out as a portal skill for [ai-job-search](https://github.com/ai-job-search-dev/ai-job-search): clone it into `.agents/skills/djinni-search` and `/scrape` uses it.
 
+> **Also in [community-portals](https://github.com/ai-job-search-dev/community-portals)**, the shared portal repo for AI Job Search, where I maintain it as code owner ([review: #21](https://github.com/ai-job-search-dev/community-portals/pull/21)). This repo is where it is developed.
+
 - **TypeScript on Bun, zero runtime dependencies.** Plain `fetch` and HTML/JSON-LD parsing; `bun install` only pulls dev types.
 - **Filters:** keywords, Djinni category, remote/part-time/office, candidate region, city, salary, public salary only, posting age.
 - **Output:** JSON (default), a table, or plain text. Errors go to stderr as JSON with exit code 1.
