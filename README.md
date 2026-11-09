@@ -8,7 +8,7 @@ A command-line tool and Claude Code skill for searching IT jobs on [Djinni](http
 - **Filters:** keywords, Djinni category, remote/part-time/office, candidate region, city, salary, public salary only, posting age.
 - **Output:** JSON (default), a table, or plain text. Errors go to stderr as JSON with exit code 1.
 - **Polite and defensive:** an honest User-Agent, retries with exponential backoff on 429/5xx, and hidden text (HTML comments, invisible elements, zero-width and bidi characters) stripped from listings before output.
-- **Tested:** 57 tests: 56 on synthetic fixtures and a mocked `fetch`, so they run offline, plus an opt-in live smoke test that checks the real site.
+- **Tested:** 64 tests: 63 on synthetic fixtures and a mocked `fetch`, so they run offline, plus an opt-in live smoke test that checks the real site.
 
 > **Personal use only.** Djinni's `robots.txt` allows the `/jobs/` pages this tool reads, and the tool never touches candidate data. Keep volume low: a few searches per session, never a crawl. You are responsible for how you use it.
 
