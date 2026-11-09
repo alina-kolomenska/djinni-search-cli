@@ -256,7 +256,10 @@ export function stripInvisible<T>(value: T): T {
 // As in a browser, only a quote right after `=` opens a value (`href=x'y` holds a
 // plain apostrophe), and a value left open runs to the end of the input, so a
 // hidden tag with one still counts as a (never-closed) hidden element.
-const ATTRS = String.raw`(?:=\s*"[^"]*(?:"|$)|=\s*'[^']*(?:'|$)|[^>])*`
+// The alternatives are mutually exclusive (a bare `=` only when no quote follows,
+// and `[^>=]` never takes an `=`), so any input has one parse and a failed match
+// backtracks in linear time, not exponential.
+const ATTRS = String.raw`(?:=\s*"[^"]*(?:"|$)|=\s*'[^']*(?:'|$)|=(?!\s*["'])|[^>=])*`
 const TAG_END = String.raw`(?:>|$)`
 
 const VOID_TAGS = new Set(["area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "param", "source", "track", "wbr"])
@@ -300,7 +303,7 @@ export function visibleHtml(html: string): string {
       // unclosed hidden element runs to the end: failing closed drops visible
       // text, failing open would leak the hidden text.
       // Every tag is matched whole, so a close tag inside a quoted attribute is skipped.
-      const same = new RegExp(`<(/?)([a-zA-Z][a-zA-Z0-9-]*)${ATTRS}>`, "g")
+      const same = new RegExp(`<(/?)([a-zA-Z][a-zA-Z0-9-]*)${ATTRS}${TAG_END}`, "g")
       same.lastIndex = end
       end = src.length
       let depth = 1

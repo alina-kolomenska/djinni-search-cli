@@ -104,3 +104,11 @@ test("a quote inside an unquoted attribute value is not a quote", () => {
   expect(out).toContain("no hidden fees");
   expect(out).toContain("VISIBLE");
 });
+
+test("an unterminated tag full of quoted attributes is scanned in linear time", () => {
+  // Ambiguous attribute alternatives once made this exponential in the count.
+  const html = `<div hidden>x<div a${' b="1"'.repeat(26)}`;
+  const start = performance.now();
+  expect(visibleHtml(html)).toBe("");
+  expect(performance.now() - start).toBeLessThan(100);
+});
